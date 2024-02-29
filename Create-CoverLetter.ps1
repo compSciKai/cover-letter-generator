@@ -1,39 +1,69 @@
-# Set the path of the template document
-$clTemplatePath = "./CoverLetterTemplate.docx"
+param(
+    [Parameter(Mandatory=$True)]
+    [string]$TemplatePath,
+    [Parameter(Mandatory=$True)]
+	[string]$ParameterPath
+)
 
-# Copy template to new path
-$newClRelativePath = "./CoverLetterExample.docx"
-Copy-Item -Path $clTemplatePath -Destination $newClRelativePath
-$newCl = Get-ChildItem $newClRelativePath
-$newClFullPath = $newCl.FullName
-
-# Set the path of the text file with the input parameters
-$clParametersPath = "./InputParameters.txt"
+$parameterPathExists = Test-Path -Path $ParameterPath
+if($parameterPathExists -ne $True) {
+    Write-Host "Error: Parameters not found at parameter path."
+    exit
+}
 
 # Read the input parameters from the text file and store them in variables
-$Position_Name = Get-Content $clParametersPath | Select-Object -Index 0
-# $Company_Name = Get-Content $clParametersPath | Select-Object -Index 1
-# $Years_Of_Experience = Get-Content $clParametersPath | Select-Object -Index 2
-# $Field_Of_Expertise = Get-Content $clParametersPath | Select-Object -Index 3
-# $Skill_1 = Get-Content $clParametersPath | Select-Object -Index 4
-# $Skill_2 = Get-Content $clParametersPath | Select-Object -Index 5
-# $Skill_3 = Get-Content $clParametersPath | Select-Object -Index 6
-# $Example_1 = Get-Content $clParametersPath | Select-Object -Index 7
-# $Example_2 = Get-Content $clParametersPath | Select-Object -Index 8
-# $Example_3 = Get-Content $clParametersPath | Select-Object -Index 9
-# $Achievement_1 = Get-Content $clParametersPath | Select-Object -Index 10
-# $Achievement_2 = Get-Content $clParametersPath | Select-Object -Index 11
-# $Achievement_3 = Get-Content $clParametersPath | Select-Object -Index 12
-# $Mission_Statement = Get-Content $clParametersPath | Select-Object -Index 13
-# $Your_Name = Get-Content $clParametersPath | Select-Object -Index 14
+$Application_Title = Get-Content $ParameterPath | Select-Object -Index 0
+$Application_Link = Get-Content $ParameterPath | Select-Object -Index 1
+$Position_Name = Get-Content $ParameterPath | Select-Object -Index 2
+$Company_Name = Get-Content $ParameterPath | Select-Object -Index 3
+$Contact_Name = Get-Content $ParameterPath | Select-Object -Index 4
+$Contact_Title = Get-Content $ParameterPath | Select-Object -Index 5
+$Address = Get-Content $ParameterPath | Select-Object -Index 6
+$City_Postal = Get-Content $ParameterPath | Select-Object -Index 7
+$Them_Reason = Get-Content $ParameterPath | Select-Object -Index 9
+$Bullet_Title_One = Get-Content $ParameterPath | Select-Object -Index 11
+$Bullet_Reason_One = Get-Content $ParameterPath | Select-Object -Index 12
+$Bullet_Title_Two = Get-Content $ParameterPath | Select-Object -Index 14
+$Bullet_Reason_Two = Get-Content $ParameterPath | Select-Object -Index 15
+$Bullet_Title_Three = Get-Content $ParameterPath | Select-Object -Index 17
+$Bullet_Reason_Three = Get-Content $ParameterPath | Select-Object -Index 18
+
+
+# Copy template to new folder
+$dateFolderName = Get-Date -Format "yyyy-MM-dd"
+$folderExists = Test-Path "./$($dateFolderName)"
+if ($folderExists -ne $True) {
+    New-Item -ItemType Directory -Path "./$dateFolderName"
+}
+
+$OutputPath = "$($dateFolderName)\CL_$($Company_Name)_$($Position_Name).docx"
+Copy-Item -Path $TemplatePath -Destination $OutputPath
+$newCl = Get-ChildItem $OutputPath
+$newClFullPath = $newCl.FullName
 
 # Read the content of the template document and store it in a variable
 $Word = New-Object -ComObject word.application
 $Document = $Word.Documents.Open($newClFullPath)
 
 # Replace the placeholders with the input parameters
+$Date = Get-Date -DisplayHint Date
 $parameterDictionary = @{
-    "(Position_Name)" = $Position_Name;
+    "<Date>" = $Date.DateTime;
+    "<ApplicationTitle>" = $Application_Title;
+    "<ApplicationLink>" = $Application_Link;
+    "<Position>" = $Position_Name;
+    "<CompanyName>" = $Company_Name;
+    "<ContactName>" = $Contact_Name;
+    "<ContactTitle>" = $Contact_Title;
+    "<Address>" = $Address;
+    "<CityAndPostalCode>" = $City_Postal;
+    "<AboutThem>" = $Them_Reason;
+    "<BulletTitleOne>" = $Bullet_Title_One;
+    "<BulletReasonOne>" = $Bullet_Reason_One;
+    "<BulletTitleTwo>" = $Bullet_Title_Two;
+    "<BulletReasonTwo>" = $Bullet_Reason_Two;
+    "<BulletTitleThree>" = $Bullet_Title_Three;
+    "<BulletReasonThree>" = $Bullet_Reason_Three;
 }
 
 function wordSearch($Document, $existingValue, $replacingValue){
