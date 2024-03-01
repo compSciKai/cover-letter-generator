@@ -47,6 +47,7 @@ if ($folderExists -ne $True) {
 }
 
 $newClFullPath = $null
+$OutputPath = $null
 try {
     $Company_Name = $parameterDictionary."<CompanyName>"
     $Position_Name = $parameterDictionary."<Position>"
@@ -73,8 +74,8 @@ function wordSearch($Document, $existingValue, $replacingValue){
     $MatchSoundsLike = $false
     $MatchAllWordForms = $false
     $Forward = $true
-    $wrap = $wdFindContinue
     $wdFindContinue = 1
+    $wrap = $wdFindContinue
     $Format = $false
     $ReplaceAll = 2
 
@@ -101,6 +102,12 @@ foreach($key in $parameterDictionary.Keys) {
 }
 
 # Save, Close, and Quit https://docs.microsoft.com/en-us/office/vba/api/word.wdsaveoptions
-$Document.Close(-1)
-$Word.Quit()
+try {
+    $Document.Close(-1)
+    $Word.Quit()
+    Write-Host "Successfully created new cover letter: ..\$OutputPath"
+} catch {
+    Write-Host "Error: Could not save cover letter. Existing documents might still be open."
+}
+
 
