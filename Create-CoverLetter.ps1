@@ -55,7 +55,7 @@ try {
     $newCl = Get-ChildItem $OutputPath
     $newClFullPath = $newCl.FullName
 } catch {
-    Write-Host "Error: Could not copy cover letter to path $($newClFullPath)"
+    Write-Host "Error: cover letter not copied to path $($newClFullPath)"
     exit
 }
 
@@ -78,7 +78,19 @@ function wordSearch($Document, $existingValue, $replacingValue){
     $Format = $false
     $ReplaceAll = 2
 
-    $Document.Content.Find.Execute($existingValue, $MatchCase, $MatchWholeWord, $MatchWildcards, $MatchSoundsLike, $MatchAllWordForms, $Forward, $wrap, $Format, $replacingValue, $ReplaceAll)
+    $Document.Content.Find.Execute(
+        $existingValue, 
+        $MatchCase, 
+        $MatchWholeWord, 
+        $MatchWildcards, 
+        $MatchSoundsLike, 
+        $MatchAllWordForms, 
+        $Forward, 
+        $wrap, 
+        $Format, 
+        $replacingValue, 
+        $ReplaceAll
+    ) | Out-Null
 }
 
 foreach($key in $parameterDictionary.Keys) {
