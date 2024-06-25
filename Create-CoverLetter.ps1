@@ -1,8 +1,8 @@
 param(
     [Parameter(Mandatory=$True)]
-    [string]$TemplatePath='.\CoverLetterTemplate.docx',
+    [string]$TemplatePath,
     [Parameter(Mandatory=$True)]
-	[string]$ParameterPath="E:\iCloudDrive\iCloud~md~obsidian\Personal Vault\sd42 cl params.md" 
+	[string]$ParameterPath
 )
 
 $parameterPathExists = Test-Path -Path $ParameterPath
