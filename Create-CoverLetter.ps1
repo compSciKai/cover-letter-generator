@@ -1,13 +1,19 @@
 param(
     [Parameter(Mandatory=$True)]
-    [string]$TemplatePath,
+    [string]$TemplatePath='.\CoverLetterTemplate.docx',
     [Parameter(Mandatory=$True)]
-	[string]$ParameterPath
+	[string]$ParameterPath="E:\iCloudDrive\iCloud~md~obsidian\Personal Vault\sd42 cl params.md" 
 )
 
 $parameterPathExists = Test-Path -Path $ParameterPath
 if($parameterPathExists -ne $True) {
     Write-Host "Error: Parameters not found at parameter path."
+    exit
+}
+
+$templatePathExists = Test-Path -Path $TemplatePath
+if($templatePathExists -ne $True) {
+    Write-Host "Error: Template not found at template path."
     exit
 }
 
@@ -94,11 +100,31 @@ function wordSearch($Document, $existingValue, $replacingValue){
     ) | Out-Null
 }
 
+Function SearchAndReplaceInChunks($Document, $findText, $replaceWithText) {
+    $chunkSize = 250 - $findText.Length
+    $chunks = [math]::Ceiling($replaceWithText.Length / $chunkSize)
+    for ($i = 0; $i -lt $chunks; $i++) {
+        $start = $i * $chunkSize
+        $end = [math]::Min(($i + 1) * $chunkSize, $replaceWithText.Length)
+        $chunkText = $replaceWithText.Substring($start, $end - $start)
+
+        if ($i+1 -ne $chunks) {
+            $chunkText+=$findText
+        }
+
+        wordSearch $Document $existingValue $chunkText
+    }
+}
+
 foreach($key in $parameterDictionary.Keys) {
     $existingValue = $key
     $replacingValue = $parameterDictionary[$key]
 
-    wordSearch $Document $existingValue $replacingValue
+    if ($replacingValue.Length -gt 250) {
+        SearchAndReplaceInChunks $Document $existingValue $replacingValue
+    } else {
+        wordSearch $Document $existingValue $replacingValue
+    }
 }
 
 # Save, Close, and Quit https://docs.microsoft.com/en-us/office/vba/api/word.wdsaveoptions
