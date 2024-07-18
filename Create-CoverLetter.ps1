@@ -1,18 +1,18 @@
 param(
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory = $True)]
     [string]$TemplatePath,
-    [Parameter(Mandatory=$True)]
-	[string]$ParameterPath
+    [Parameter(Mandatory = $True)]
+    [string]$ParameterPath
 )
 
 $parameterPathExists = Test-Path -Path $ParameterPath
-if($parameterPathExists -ne $True) {
+if ($parameterPathExists -ne $True) {
     Write-Host "Error: Parameters not found at parameter path."
     exit
 }
 
 $templatePathExists = Test-Path -Path $TemplatePath
-if($templatePathExists -ne $True) {
+if ($templatePathExists -ne $True) {
     Write-Host "Error: Template not found at template path."
     exit
 }
@@ -21,25 +21,25 @@ function Create-ClParameterDictionary($ParameterPath) {
     # Read the input parameters from the parameter file and store them in dictionary
 
     $Date = Get-Date -DisplayHint Date
-     return @{
-        "<Date>" = $Date.DateTime;
-        "<ApplicationTitle>" = Get-Content $ParameterPath | Select-Object -Index 0;
-        "<ApplicationLink>" = Get-Content $ParameterPath | Select-Object -Index 1;
-        "<Position>" = Get-Content $ParameterPath | Select-Object -Index 2;
-        "<CompanyName>" = Get-Content $ParameterPath | Select-Object -Index 3;
-        "<ContactName>" = Get-Content $ParameterPath | Select-Object -Index 4;
-        "<ContactTitle>" = Get-Content $ParameterPath | Select-Object -Index 5;
-        "<Address>" = Get-Content $ParameterPath | Select-Object -Index 6;
+    return @{
+        "<Date>"              = $Date.DateTime;
+        "<ApplicationTitle>"  = Get-Content $ParameterPath | Select-Object -Index 0;
+        "<ApplicationLink>"   = Get-Content $ParameterPath | Select-Object -Index 1;
+        "<Position>"          = Get-Content $ParameterPath | Select-Object -Index 2;
+        "<CompanyName>"       = Get-Content $ParameterPath | Select-Object -Index 3;
+        "<ContactName>"       = Get-Content $ParameterPath | Select-Object -Index 4;
+        "<ContactTitle>"      = Get-Content $ParameterPath | Select-Object -Index 5;
+        "<Address>"           = Get-Content $ParameterPath | Select-Object -Index 6;
         "<CityAndPostalCode>" = Get-Content $ParameterPath | Select-Object -Index 7;
-        "<AboutThem>" = Get-Content $ParameterPath | Select-Object -Index 9;
-        "<BulletTitleOne>" = Get-Content $ParameterPath | Select-Object -Index 11;
-        "<BulletReasonOne>" = Get-Content $ParameterPath | Select-Object -Index 12;
-        "<BulletTitleTwo>" = Get-Content $ParameterPath | Select-Object -Index 14;
-        "<BulletReasonTwo>" = Get-Content $ParameterPath | Select-Object -Index 15;
-        "<BulletTitleThree>" = Get-Content $ParameterPath | Select-Object -Index 17;
+        "<AboutThem>"         = Get-Content $ParameterPath | Select-Object -Index 9;
+        "<BulletTitleOne>"    = Get-Content $ParameterPath | Select-Object -Index 11;
+        "<BulletReasonOne>"   = Get-Content $ParameterPath | Select-Object -Index 12;
+        "<BulletTitleTwo>"    = Get-Content $ParameterPath | Select-Object -Index 14;
+        "<BulletReasonTwo>"   = Get-Content $ParameterPath | Select-Object -Index 15;
+        "<BulletTitleThree>"  = Get-Content $ParameterPath | Select-Object -Index 17;
         "<BulletReasonThree>" = Get-Content $ParameterPath | Select-Object -Index 18;
-        "<BulletTitleFour>" = Get-Content $ParameterPath | Select-Object -Index 20;
-        "<BulletReasonFour>" = Get-Content $ParameterPath | Select-Object -Index 21;
+        "<BulletTitleFour>"   = Get-Content $ParameterPath | Select-Object -Index 20;
+        "<BulletReasonFour>"  = Get-Content $ParameterPath | Select-Object -Index 21;
     }
 }
 
@@ -61,7 +61,8 @@ try {
     Copy-Item -Path $TemplatePath -Destination $OutputPath
     $newCl = Get-ChildItem $OutputPath
     $newClFullPath = $newCl.FullName
-} catch {
+}
+catch {
     Write-Host "Error: cover letter not copied to path $($newClFullPath)"
     exit
 }
@@ -70,10 +71,7 @@ try {
 $Word = New-Object -ComObject word.application
 $Document = $Word.Documents.Open($newClFullPath)
 
-
-
-
-function wordSearch($Document, $existingValue, $replacingValue){
+function wordSearch($Document, $existingValue, $replacingValue) {
     $MatchCase = $false
     $MatchWholeWord = $true
     $MatchWildcards = $false
@@ -108,21 +106,22 @@ Function SearchAndReplaceInChunks($Document, $findText, $replaceWithText) {
         $end = [math]::Min(($i + 1) * $chunkSize, $replaceWithText.Length)
         $chunkText = $replaceWithText.Substring($start, $end - $start)
 
-        if ($i+1 -ne $chunks) {
-            $chunkText+=$findText
+        if ($i + 1 -ne $chunks) {
+            $chunkText += $findText
         }
 
         wordSearch $Document $existingValue $chunkText
     }
 }
 
-foreach($key in $parameterDictionary.Keys) {
+foreach ($key in $parameterDictionary.Keys) {
     $existingValue = $key
     $replacingValue = $parameterDictionary[$key]
 
     if ($replacingValue.Length -gt 250) {
         SearchAndReplaceInChunks $Document $existingValue $replacingValue
-    } else {
+    }
+    else {
         wordSearch $Document $existingValue $replacingValue
     }
 }
@@ -132,8 +131,7 @@ try {
     $Document.Close(-1)
     $Word.Quit()
     Write-Host "Successfully created new cover letter: ..\$OutputPath"
-} catch {
+}
+catch {
     Write-Host "Error: Could not save cover letter. Existing documents might still be open."
 }
-
-

@@ -2,10 +2,10 @@
 # Update-Module PSWritePDF   
 
 param(
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory = $True)]
     [string]$CoverLetterPath,
-    [Parameter(Mandatory=$True)]
-	[string]$ResumePath
+    [Parameter(Mandatory = $True)]
+    [string]$ResumePath
 )
 
 # TODO: Check files are PDF
